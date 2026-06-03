@@ -4,8 +4,6 @@ from dotenv import load_dotenv
 from groq import Groq
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.document_loaders import PyPDFDirectoryLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 load_dotenv()
 
@@ -21,15 +19,14 @@ st.set_page_config(
 
 @st.cache_resource
 def load_vectorstore():
-    loader = PyPDFDirectoryLoader("data")
-    documents = loader.load()
-
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    chunks = text_splitter.split_documents(documents)
-
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = FAISS.from_documents(chunks, embeddings)
-    
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    vectorstore = FAISS.load_local(
+        "vectorstore",
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
     return vectorstore
 
 vectorstore = load_vectorstore()
@@ -86,10 +83,6 @@ if question:
     with st.chat_message("assistant"):
         with st.spinner("Searching documents..."):
             docs = vectorstore.max_marginal_relevance_search(question, k=3, fetch_k=10)
-            
-            st.write(f"DEBUG: Found {len(docs)} documents.")
-            for d in docs:
-                st.write(f"DEBUG: Preview: {d.page_content[:100]}...")
 
             context_parts = []
             sources = set()
@@ -111,16 +104,16 @@ Content:
             prompt = f"""
 You are GITAM AI Assistant.
 
-Answer ONLY using the provided context.
+Answer ONLY from the provided context.
 
-Rules:
+When numerical values such as fees, attendance percentages,
+credit requirements, CGPA requirements, deadlines, or penalties
+are present in the context, ALWAYS include the exact values.
 
-1. Give a direct answer.
-2. Use exact numbers if present.
-3. Keep answers concise.
-4. Explain in student-friendly language.
-5. If information is unavailable, say:
-   "I could not find that information in the uploaded GITAM documents."
+Do not summarize away numerical information.
+
+If the answer is not present, say:
+"I could not find that information in the uploaded GITAM documents."
 
 Context:
 {context}

@@ -4,4 +4,4 @@ venv/
 __pycache__/
 *.pyc
 
-vectorstore/
+vectorstore/git remote -v
