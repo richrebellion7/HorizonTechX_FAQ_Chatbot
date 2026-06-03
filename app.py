@@ -82,11 +82,11 @@ if question:
 
     with st.chat_message("assistant"):
         with st.spinner("Searching documents..."):
-            docs = vectorstore.max_marginal_relevance_search(
-                question,
-                k=3,
-                fetch_k=10
-            )
+            docs = vectorstore.max_marginal_relevance_search(question, k=3, fetch_k=10)
+            
+            st.write(f"DEBUG: Found {len(docs)} documents.")
+            for d in docs:
+                st.write(f"DEBUG: Preview: {d.page_content[:100]}...")
 
             context_parts = []
             sources = set()
