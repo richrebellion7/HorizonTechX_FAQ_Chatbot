@@ -46,6 +46,10 @@ Student-Friendly Answer
 - What are the hostel rules?
 - How many credits are required for graduation?
 
+## Link to Project
+
+https://gitamh-ai-assistant.streamlit.app/
+
 ## Installation
 
 ```bash
